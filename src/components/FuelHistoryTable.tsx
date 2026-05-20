@@ -172,70 +172,71 @@ export default function FuelHistoryTable({ entries, onDelete, onEdit }: FuelHist
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setEntryToDelete(null)}
-              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+              className="absolute inset-0 bg-slate-900/40 backdrop-blur-md"
             />
 
             {/* Modal Body Card */}
             <motion.div
-              initial={{ scale: 0.95, opacity: 0, y: 15 }}
+              initial={{ scale: 0.96, opacity: 0, y: 12 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.95, opacity: 0, y: 15 }}
-              transition={{ type: "spring", duration: 0.3 }}
-              className="relative w-full max-w-md bg-white border border-slate-100 rounded-2xl shadow-2xl p-6 overflow-hidden z-10 text-left font-sans"
+              exit={{ scale: 0.96, opacity: 0, y: 12 }}
+              transition={{ type: "spring", stiffness: 380, damping: 30 }}
+              className="relative w-full max-w-sm bg-white border border-slate-100 rounded-2xl shadow-[0_20px_50px_rgba(15,23,42,0.15)] p-6 overflow-hidden z-10 text-left font-sans"
             >
               {/* Close Button top corner */}
               <button
                 onClick={() => setEntryToDelete(null)}
-                className="absolute top-4 right-4 p-1.5 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition"
+                className="absolute top-4 right-4 p-1.5 rounded-lg hover:bg-slate-50 text-slate-400 hover:text-slate-600 transition"
                 title="ปิด"
               >
                 <X className="w-4 h-4" />
               </button>
 
-              <div className="flex flex-col items-center text-center space-y-4">
-                {/* Warning Red Icon with glow */}
-                <div className="w-12 h-12 rounded-full bg-red-50 text-red-650 flex items-center justify-center border border-red-100 shadow-sm animate-pulse-subtle">
-                  <AlertTriangle className="w-6 h-6" />
+              <div className="space-y-4">
+                {/* Elegant icon header */}
+                <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-100/60 shadow-xs">
+                  <AlertTriangle className="w-5 h-5" />
                 </div>
 
                 {/* Confirm Text titles */}
-                <div className="space-y-1.5">
-                  <h3 className="text-base font-bold text-slate-900 font-sans tracking-tight">
-                    ยืนยันต้องการลบรายการนี้ใช่หรือไม่?
+                <div className="space-y-1">
+                  <h3 className="text-base font-semibold text-slate-900 font-sans tracking-tight">
+                    ยืนยันต้องการลบรายการใช่ไหม?
                   </h3>
-                  <p className="text-xs text-slate-500 font-sans leading-relaxed">
-                    คุณกำลังจะลบรายการค่าน้ำมันคันนี้อย่างถาวรและจะไม่สามารถย้อนกลับคืนการกระทำนี้ได้
+                  <p className="text-xs text-slate-400 font-sans leading-relaxed">
+                    ข้อมูลประวัติค่าน้ำมันรายการนี้จะถูกลบออกถาวรอย่างปลอดภัย
                   </p>
                 </div>
 
                 {/* Entry Preview Highlight Card */}
-                <div className="w-full bg-slate-50 border border-slate-150 rounded-xl p-3 flex flex-col gap-1 text-[11px] font-medium text-slate-600">
-                  <div className="flex justify-between items-center px-1">
+                <div className="bg-slate-50 border border-slate-150 rounded-xl p-3.5 space-y-2 text-[11px] font-medium text-slate-600">
+                  <div className="flex justify-between items-center">
                     <span className="text-slate-400 font-sans">วันที่บันทึก:</span>
                     <span className="text-slate-800 font-semibold">{formatThaiDate(entryToDelete.date)}</span>
                   </div>
-                  <div className="h-[1px] bg-slate-200/60 my-0.5" />
-                  <div className="flex justify-between items-center px-1">
-                    <span className="text-slate-400 font-sans">จำนวนเงินที่ลบ:</span>
-                    <span className="text-red-650 font-bold font-mono text-sm">
-                      {entryToDelete.cost.toLocaleString("th-TH")} บาท
-                    </span>
+                  <div className="h-[1px] bg-slate-200/50" />
+                  <div className="flex justify-between items-baseline">
+                    <span className="text-slate-400 font-sans">จำนวนเงิน:</span>
+                    <div className="text-slate-900 font-bold font-mono text-base">
+                      {entryToDelete.cost.toLocaleString("th-TH")}
+                      <span className="text-[10px] font-sans font-medium text-slate-400 ml-1">บาท</span>
+                    </div>
                   </div>
                 </div>
 
                 {/* Control Action Buttons */}
-                <div className="grid grid-cols-2 gap-3 w-full pt-1.5">
+                <div className="grid grid-cols-2 gap-2.5 pt-1">
                   <button
                     onClick={() => setEntryToDelete(null)}
-                    className="h-11 border border-slate-250 bg-white hover:bg-slate-50 active:scale-98 text-slate-700 text-xs font-semibold rounded-xl flex items-center justify-center transition duration-150 cursor-pointer"
+                    className="h-10 border border-slate-200 bg-white hover:bg-slate-50 active:scale-98 text-slate-600 text-xs font-semibold rounded-xl flex items-center justify-center transition duration-150 cursor-pointer"
                   >
                     ยกเลิก
                   </button>
                   <button
                     onClick={confirmDelete}
-                    className="h-11 bg-red-650 hover:bg-red-700 active:scale-98 text-white text-xs font-semibold rounded-xl flex items-center justify-center shadow-md shadow-red-200 transition duration-150 cursor-pointer"
+                    className="h-10 bg-slate-900 hover:bg-slate-800 active:scale-98 text-white text-xs font-semibold rounded-xl flex items-center justify-center shadow-sm shadow-slate-900/10 transition duration-150 cursor-pointer"
                   >
-                    ยืนยันลบข้อมูล
+                    ยืนยันการลบ
                   </button>
                 </div>
               </div>
