@@ -267,79 +267,10 @@ export default function App() {
                 <span className="bg-slate-50 text-slate-500 text-[10px] font-semibold px-2.5 py-0.5 rounded-md border border-slate-200">
                   สถิติค่าเฉลี่ยและกราฟ
                 </span>
-                
-                {/* Supabase status badge */}
-                {isSupabaseConfigured ? (
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 text-[10px] font-semibold px-2 py-0.5 rounded border border-emerald-200 shadow-sm">
-                      <Database className="w-3 h-3 text-emerald-500" />
-                      คลาวส์ Supabase เชื่อมต่ออยู่
-                    </span>
-                    <div className="inline-flex items-center gap-1.5 bg-slate-100 border border-slate-250 rounded-md p-1 px-2 text-[10px] text-slate-700 shadow-sm">
-                      <span className="font-semibold text-slate-500 uppercase tracking-wider font-mono text-[9px]">ชื่อตาราง:</span>
-                      <input
-                        type="text"
-                        value={tableName}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setTableName(val);
-                          localStorage.setItem("fuel_tracker_table_name", val);
-                        }}
-                        placeholder="ชื่อตารางใน Supabase"
-                        className="bg-white border border-slate-200 rounded font-mono font-medium px-1.5 py-0.5 w-36 outline-none focus:ring-1 focus:ring-slate-350 focus:border-slate-400 text-[10px]"
-                        title="กำหนดชื่อตารางข้อมูลในคลาวด์ เช่น Car-Oil fuel_entries หรือ fuel_entries"
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <span className="inline-flex items-center gap-1 bg-slate-100 text-slate-600 text-[10px] font-semibold px-2 py-0.5 rounded border border-slate-200">
-                    <CheckCircle className="w-3 h-3 text-slate-400" />
-                    โหมดออฟไลน์บันทึกในเครื่อง
-                  </span>
-                )}
               </div>
-              <p className="text-xs text-slate-400 mt-0.5 font-sans">
-                บันทึกค่าน้ำมันแต่ละครั้ง ติดตามสถิติรายสัปดาห์รายเดือน และกราฟวิเคราะห์แนวโน้มอย่างแม่นยำ
-              </p>
             </div>
           </div>
 
-          {/* Quick controls */}
-          <div className="flex items-center gap-2 ml-auto sm:ml-0">
-            {isSupabaseConfigured && entries.length > 0 && (
-              <button
-                onClick={handleSyncLocalToCloud}
-                disabled={supabaseLoading}
-                className="h-10 px-3.5 rounded-xl border border-emerald-250 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-semibold flex items-center gap-1.5 transition duration-155 cursor-pointer disabled:opacity-50 shadow-sm"
-                title="ส่งข้อมูลในเบราว์เซอร์นี้ทั้งหมดขึ้นระบบคลาวด์ Supabase"
-              >
-                <Database className="w-3.5 h-3.5 text-emerald-600" />
-                ซิงค์ขึ้น Cloud
-              </button>
-            )}
-
-            {entries.length === 0 ? (
-              <button
-                id="reset-mock-btn"
-                onClick={handleResetToMock}
-                className="h-10 px-4 rounded-xl border border-slate-200 hover:border-slate-800 text-slate-700 hover:bg-slate-50 text-xs font-semibold flex items-center gap-1.5 transition duration-155 cursor-pointer"
-                title="โหลดสถิติตัวอย่าง"
-              >
-                <Sparkles className="w-3.5 h-3.5 text-slate-500" />
-                โหลดข้อมูลตัวอย่าง
-              </button>
-            ) : (
-              <button
-                id="clear-all-btn"
-                onClick={handleClearAll}
-                className="h-10 px-4 rounded-xl border border-slate-200 hover:border-slate-800 hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition duration-155 cursor-pointer"
-                title="ล้างข้อมูลทั้งหมด"
-              >
-                <RotateCcw className="w-3.5 h-3.5 text-slate-500" />
-                ล้างข้อมูลประวัติ
-              </button>
-            )}
-          </div>
         </div>
       </header>
 
@@ -529,51 +460,9 @@ export default function App() {
 
       </main>
 
-      {/* SQL Script Copy-paste box */}
-      <footer className="mt-16 border-t border-slate-200 bg-white py-10 px-4 md:px-8 no-print text-center">
-        <div className="max-w-2xl mx-auto space-y-4">
-          <div className="flex items-center justify-center gap-2 text-slate-800 text-xs font-semibold">
-            <Database className="w-4 h-4 text-slate-400" />
-            <span>คำสั่ง SQL สำหรับสร้างตาราง และเปิดสิทธิ์สาธารณะร่วมกัน (Disable RLS)</span>
-          </div>
-          <p className="text-[11px] text-slate-500 max-w-lg mx-auto font-sans font-light leading-relaxed">
-            คัดลอกชุดคำสั่งด้านล่างนี้ไปวางลงใน <strong>SQL Editor</strong> ของคุณบนเว็บ Supabase แล้วกด <strong>Run</strong> เพื่อสร้างตารางพร้อมเคลียร์สิทธิ์ความปลอดภัย ให้บุคคลอื่นบันทึกและเห็นข้อมูลเดียวกันแบบเรียลไทม์!
-          </p>
-          <div className="relative text-left">
-            <pre className="bg-slate-900 border border-slate-800 p-4 rounded-xl text-slate-300 font-mono text-[10px] overflow-x-auto leading-relaxed shadow-sm">
-{`-- 1. ล้างตารางเดิมกรณีที่มีอยู่ เพื่อเริ่มต้นอย่างสมบูรณ์
-drop table if exists "${tableName}";
-
-create table "${tableName}" (
-  id uuid default gen_random_uuid() primary key,
-  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
-  date date not null,
-  cost numeric not null
-);
-
--- 2. ปิด RLS ปลดล็อกตาราง ให้ทุกคนเขียน/มองเห็นข้อมูลค่าน้ำมันร่วมกันอย่างอิสระ
-alter table "${tableName}" disable row level security;`}
-            </pre>
-            <button 
-              onClick={() => {
-                navigator.clipboard.writeText(`drop table if exists "${tableName}";
-
-create table "${tableName}" (
-  id uuid default gen_random_uuid() primary key,
-  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
-  date date not null,
-  cost numeric not null
-);
-
-alter table "${tableName}" disable row level security;`);
-                alert(`คัดลอกชุดคำสั่ง SQL สำหรับตาราง "${tableName}" เรียบร้อยแล้ว!`);
-              }}
-              className="absolute top-2.5 right-2.5 bg-slate-850/90 hover:bg-slate-700/80 text-white font-semibold text-[9px] px-2.5 py-1.5 rounded-md border border-slate-700/50 transition cursor-pointer"
-            >
-              คัดลอก SQL
-            </button>
-          </div>
-        </div>
+      {/* Simple Clean Footer */}
+      <footer className="mt-16 border-t border-slate-100 bg-slate-50/30 py-8 px-4 no-print text-center text-[11px] text-slate-400">
+        <p>© {new Date().getFullYear()} ระบบบันทึกค่าน้ำมันรถยนต์ · บันทึกข้อมูลและรายงานอย่างมีประสิทธิภาพ</p>
       </footer>
 
     </div>
