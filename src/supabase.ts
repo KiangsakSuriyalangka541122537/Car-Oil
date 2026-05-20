@@ -2,10 +2,18 @@ import { createClient } from "@supabase/supabase-js";
 
 // Retrieve optional Supabase configurations from Vite environment variables
 const rawUrl = ((import.meta as any).env.VITE_SUPABASE_URL || "").trim();
-const supabaseAnonKey = ((import.meta as any).env.VITE_SUPABASE_ANON_KEY || "").trim();
+const rawKey = ((import.meta as any).env.VITE_SUPABASE_ANON_KEY || "").trim();
+
+// Clean up quotes (sometimes users copy with quotes) and whitespace
+let cleanUrl = rawUrl.replace(/^["']|["']$/g, "").trim();
+const supabaseAnonKey = rawKey.replace(/^["']|["']$/g, "").trim();
+
+// If the URL has "/rest/v1" or similar suffixes, strip them
+cleanUrl = cleanUrl.replace(/\/rest\/v1\/?$/, "");
+cleanUrl = cleanUrl.replace(/\/+$/, ""); // strip all trailing slashes
 
 // Automatically heal simple Project Refs/IDs to full Supabase URLs
-let supabaseUrl = rawUrl;
+let supabaseUrl = cleanUrl;
 if (supabaseUrl && !supabaseUrl.startsWith("http://") && !supabaseUrl.startsWith("https://")) {
   if (supabaseUrl.includes(".supabase.co")) {
     supabaseUrl = `https://${supabaseUrl}`;
