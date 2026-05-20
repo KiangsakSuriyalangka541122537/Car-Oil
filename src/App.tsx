@@ -116,8 +116,9 @@ export default function App() {
             })
             .eq("id", updatedId);
           if (error) throw error;
-        } catch (err) {
+        } catch (err: any) {
           console.error("Cloud edit failed:", err);
+          setSupabaseError(`แก้ไขข้อมูลบน Cloud ล้มเหลว: ${err.message || err}`);
         }
       }
     } else {
@@ -142,8 +143,9 @@ export default function App() {
               },
             ]);
           if (error) throw error;
-        } catch (err) {
+        } catch (err: any) {
           console.error("Cloud insert failed:", err);
+          setSupabaseError(`เพิ่มข้อมูลลง Cloud ล้มเหลว: ${err.message || err}`);
         }
       }
     }
@@ -163,8 +165,9 @@ export default function App() {
           .delete()
           .eq("id", id);
         if (error) throw error;
-      } catch (err) {
+      } catch (err: any) {
         console.error("Cloud delete failed:", err);
+        setSupabaseError(`ลบข้อมูลบน Cloud ล้มเหลว: ${err.message || err}`);
       }
     }
   };
@@ -187,9 +190,43 @@ export default function App() {
             .delete()
             .neq("id", "00000000-0000-0000-0000-000000000000");
           if (error) throw error;
-        } catch (err) {
+        } catch (err: any) {
           console.error("Cloud clear failed:", err);
+          setSupabaseError(`ล้างข้อมูลบนคลาวด์ขัดข้อง: ${err.message || err}`);
         }
+      }
+    }
+  };
+
+  const handleSyncLocalToCloud = async () => {
+    if (!isSupabaseConfigured || !supabase || entries.length === 0) return;
+    
+    if (
+      confirm(
+        `ต้องการอัปโหลดข้อมูลประวัติจากเว็บเบราว์เซอร์นี้ทั้งหมด (${entries.length} รายการ) ขึ้นไปบันทึกยังระบบคลาวด์ Supabase หรือไม่? เพื่อให้ทุกคนใช้ข้อมูลร่วมกันได้`
+      )
+    ) {
+      setSupabaseLoading(true);
+      setSupabaseError(null);
+      try {
+        // Upload each local entry
+        for (const entry of entries) {
+          const { error } = await supabase
+            .from("fuel_entries")
+            .upsert({
+              id: entry.id,
+              date: entry.date,
+              cost: entry.cost,
+            });
+          if (error) throw error;
+        }
+        alert("อัปโหลดซิงค์ข้อมูลขึ้น Cloud Supabase สำเร็จเรียบร้อยแล้ว!");
+      } catch (err: any) {
+        console.error("Sync to cloud failed:", err);
+        setSupabaseError(`การซิงก์ข้อมูลขึ้นคลาวด์ขัดข้อง: ${err.message || err}`);
+        alert("การซิงข้อมูลขึ้นคลาวด์ขัดข้อง: " + (err.message || ""));
+      } finally {
+        setSupabaseLoading(false);
       }
     }
   };
@@ -249,6 +286,18 @@ export default function App() {
 
           {/* Quick controls */}
           <div className="flex items-center gap-2 ml-auto sm:ml-0">
+            {isSupabaseConfigured && entries.length > 0 && (
+              <button
+                onClick={handleSyncLocalToCloud}
+                disabled={supabaseLoading}
+                className="h-10 px-3.5 rounded-xl border border-emerald-250 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-semibold flex items-center gap-1.5 transition duration-155 cursor-pointer disabled:opacity-50 shadow-sm"
+                title="ส่งข้อมูลในเบราว์เซอร์นี้ทั้งหมดขึ้นระบบคลาวด์ Supabase"
+              >
+                <Database className="w-3.5 h-3.5 text-emerald-600" />
+                ซิงค์ขึ้น Cloud
+              </button>
+            )}
+
             {entries.length === 0 ? (
               <button
                 id="reset-mock-btn"
@@ -277,6 +326,36 @@ export default function App() {
       {/* Principal body container */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
         
+        {/* Loading and Error Alerts for Supabase Cloud */}
+        {supabaseLoading && (
+          <div className="mb-6 p-4 bg-slate-100 border border-slate-200 text-slate-700 text-xs rounded-xl flex items-center gap-2.5 no-print animate-pulse">
+            <span className="flex h-2 w-2 relative">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-slate-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-slate-500"></span>
+            </span>
+            <span>กำลังประสานข้อมูลกับคลาวด์ Supabase...</span>
+          </div>
+        )}
+
+        {supabaseError && (
+          <div className="mb-6 p-4 bg-rose-50 border border-rose-200 text-rose-800 text-xs rounded-xl flex sm:flex-row flex-col justify-between items-start sm:items-center gap-3 no-print shadow-sm">
+            <div className="flex items-start gap-2.5">
+              <span className="p-1 px-2 bg-rose-100 text-rose-700 rounded-md font-bold">⚠️ Cloud Error</span>
+              <div>
+                <p className="font-semibold">การเชื่อมต่อหรือบันทึกลง Supabase ขัดข้อง</p>
+                <p className="mt-1 text-[11px] text-rose-600 font-light font-sans">{supabaseError}</p>
+                <p className="mt-1 text-[10px] text-rose-500 font-light">คำแนะนำ: ตรวจสอบปุ่ม SQL Editor ด้านล่างเพื่อทำการคัดลอกคำสั่งไปปิด Row Level Security (RLS) เพื่อให้ระบบส่วนกลางบันทึกข้อมูลสาธารณะร่วมกันได้สำเร็จ</p>
+              </div>
+            </div>
+            <button 
+              onClick={() => setSupabaseError(null)}
+              className="text-[10px] text-rose-600 hover:text-rose-950 border border-rose-200/50 bg-rose-100/50 hover:bg-rose-100 px-2.5 py-1.5 rounded-lg transition font-semibold shrink-0 cursor-pointer"
+            >
+              ปิดการแจ้งเตือน
+            </button>
+          </div>
+        )}
+
         {/* DASHBOARD METRICS */}
         <section className="mb-6 no-print">
           <FuelStatsDashboard metrics={metrics} totalEntries={entries.length} />
@@ -429,6 +508,53 @@ export default function App() {
         </div>
 
       </main>
+
+      {/* SQL Script Copy-paste box */}
+      <footer className="mt-16 border-t border-slate-200 bg-white py-10 px-4 md:px-8 no-print text-center">
+        <div className="max-w-2xl mx-auto space-y-4">
+          <div className="flex items-center justify-center gap-2 text-slate-800 text-xs font-semibold">
+            <Database className="w-4 h-4 text-slate-400" />
+            <span>คำสั่ง SQL สำหรับสร้างตาราง และเปิดสิทธิ์สาธารณะร่วมกัน (Disable RLS)</span>
+          </div>
+          <p className="text-[11px] text-slate-500 max-w-lg mx-auto font-sans font-light leading-relaxed">
+            คัดลอกชุดคำสั่งด้านล่างนี้ไปวางลงใน <strong>SQL Editor</strong> ของคุณบนเว็บ Supabase แล้วกด <strong>Run</strong> เพื่อสร้างตารางพร้อมเคลียร์สิทธิ์ความปลอดภัย ให้บุคคลอื่นบันทึกและเห็นข้อมูลเดียวกันแบบเรียลไทม์!
+          </p>
+          <div className="relative text-left">
+            <pre className="bg-slate-900 border border-slate-800 p-4 rounded-xl text-slate-300 font-mono text-[10px] overflow-x-auto leading-relaxed shadow-sm">
+{`-- 1. ล้างตารางเดิมกรณีที่มีอยู่ เพื่อเริ่มต้นอย่างสมบูรณ์
+drop table if exists fuel_entries;
+
+create table fuel_entries (
+  id uuid default gen_random_uuid() primary key,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  date date not null,
+  cost numeric not null
+);
+
+-- 2. ปิด RLS ปลดล็อกตาราง ให้ทุกคนเขียน/มองเห็นข้อมูลค่าน้ำมันร่วมกันอย่างอิสระ
+alter table fuel_entries disable row level security;`}
+            </pre>
+            <button 
+              onClick={() => {
+                navigator.clipboard.writeText(`drop table if exists fuel_entries;
+
+create table fuel_entries (
+  id uuid default gen_random_uuid() primary key,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  date date not null,
+  cost numeric not null
+);
+
+alter table fuel_entries disable row level security;`);
+                alert("คัดลอกชุดคำสั่ง SQL สำหรับ Supabase เรียบร้อยแล้ว!");
+              }}
+              className="absolute top-2.5 right-2.5 bg-slate-850/90 hover:bg-slate-700/80 text-white font-semibold text-[9px] px-2.5 py-1.5 rounded-md border border-slate-700/50 transition cursor-pointer"
+            >
+              คัดลอก SQL
+            </button>
+          </div>
+        </div>
+      </footer>
 
     </div>
   );
