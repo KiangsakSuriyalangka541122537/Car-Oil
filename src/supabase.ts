@@ -1,8 +1,18 @@
 import { createClient } from "@supabase/supabase-js";
 
 // Retrieve optional Supabase configurations from Vite environment variables
-const supabaseUrl = (import.meta as any).env.VITE_SUPABASE_URL || "";
-const supabaseAnonKey = (import.meta as any).env.VITE_SUPABASE_ANON_KEY || "";
+const rawUrl = ((import.meta as any).env.VITE_SUPABASE_URL || "").trim();
+const supabaseAnonKey = ((import.meta as any).env.VITE_SUPABASE_ANON_KEY || "").trim();
+
+// Automatically heal simple Project Refs/IDs to full Supabase URLs
+let supabaseUrl = rawUrl;
+if (supabaseUrl && !supabaseUrl.startsWith("http://") && !supabaseUrl.startsWith("https://")) {
+  if (supabaseUrl.includes(".supabase.co")) {
+    supabaseUrl = `https://${supabaseUrl}`;
+  } else {
+    supabaseUrl = `https://${supabaseUrl}.supabase.co`;
+  }
+}
 
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
 
