@@ -46,6 +46,9 @@ export default function App() {
   const [currentTab, setCurrentTab] = useState<"dashboard" | "charts" | "report">("dashboard");
   const [supabaseLoading, setSupabaseLoading] = useState(false);
   const [supabaseError, setSupabaseError] = useState<string | null>(null);
+  const [tableName, setTableName] = useState<string>(() => {
+    return localStorage.getItem("fuel_tracker_table_name")?.trim() || "Car-Oil fuel_entries";
+  });
 
   // Sync to localStorage
   useEffect(() => {
@@ -61,7 +64,7 @@ export default function App() {
       setSupabaseError(null);
       try {
         const { data, error } = await supabase
-          .from("fuel_entries")
+          .from(tableName)
           .select("*")
           .order("date", { ascending: false });
 
@@ -84,7 +87,7 @@ export default function App() {
     };
 
     fetchSupabaseEntries();
-  }, []);
+  }, [tableName]);
 
   // Handle adding of a new entry or editing of existing
   const handleAddOrEditEntry = async (
@@ -109,7 +112,7 @@ export default function App() {
       if (isSupabaseConfigured && supabase) {
         try {
           const { error } = await supabase
-            .from("fuel_entries")
+            .from(tableName)
             .update({
               date: entryData.date,
               cost: entryData.cost,
@@ -134,7 +137,7 @@ export default function App() {
       if (isSupabaseConfigured && supabase) {
         try {
           const { error } = await supabase
-            .from("fuel_entries")
+            .from(tableName)
             .insert([
               {
                 id: generatedId,
@@ -161,7 +164,7 @@ export default function App() {
     if (isSupabaseConfigured && supabase) {
       try {
         const { error } = await supabase
-          .from("fuel_entries")
+          .from(tableName)
           .delete()
           .eq("id", id);
         if (error) throw error;
@@ -186,7 +189,7 @@ export default function App() {
         try {
           // Deletes all rows in the table
           const { error } = await supabase
-            .from("fuel_entries")
+            .from(tableName)
             .delete()
             .neq("id", "00000000-0000-0000-0000-000000000000");
           if (error) throw error;
@@ -212,7 +215,7 @@ export default function App() {
         // Upload each local entry
         for (const entry of entries) {
           const { error } = await supabase
-            .from("fuel_entries")
+            .from(tableName)
             .upsert({
               id: entry.id,
               date: entry.date,
@@ -267,10 +270,27 @@ export default function App() {
                 
                 {/* Supabase status badge */}
                 {isSupabaseConfigured ? (
-                  <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 text-[10px] font-semibold px-2 py-0.5 rounded border border-emerald-200 shadow-sm">
-                    <Database className="w-3 h-3 text-emerald-500" />
-                    คลาวส์ Supabase เชื่อมต่ออยู่
-                  </span>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 text-[10px] font-semibold px-2 py-0.5 rounded border border-emerald-200 shadow-sm">
+                      <Database className="w-3 h-3 text-emerald-500" />
+                      คลาวส์ Supabase เชื่อมต่ออยู่
+                    </span>
+                    <div className="inline-flex items-center gap-1.5 bg-slate-100 border border-slate-250 rounded-md p-1 px-2 text-[10px] text-slate-700 shadow-sm">
+                      <span className="font-semibold text-slate-500 uppercase tracking-wider font-mono text-[9px]">ชื่อตาราง:</span>
+                      <input
+                        type="text"
+                        value={tableName}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setTableName(val);
+                          localStorage.setItem("fuel_tracker_table_name", val);
+                        }}
+                        placeholder="ชื่อตารางใน Supabase"
+                        className="bg-white border border-slate-200 rounded font-mono font-medium px-1.5 py-0.5 w-36 outline-none focus:ring-1 focus:ring-slate-350 focus:border-slate-400 text-[10px]"
+                        title="กำหนดชื่อตารางข้อมูลในคลาวด์ เช่น Car-Oil fuel_entries หรือ fuel_entries"
+                      />
+                    </div>
+                  </div>
                 ) : (
                   <span className="inline-flex items-center gap-1 bg-slate-100 text-slate-600 text-[10px] font-semibold px-2 py-0.5 rounded border border-slate-200">
                     <CheckCircle className="w-3 h-3 text-slate-400" />
@@ -522,9 +542,9 @@ export default function App() {
           <div className="relative text-left">
             <pre className="bg-slate-900 border border-slate-800 p-4 rounded-xl text-slate-300 font-mono text-[10px] overflow-x-auto leading-relaxed shadow-sm">
 {`-- 1. ล้างตารางเดิมกรณีที่มีอยู่ เพื่อเริ่มต้นอย่างสมบูรณ์
-drop table if exists fuel_entries;
+drop table if exists "${tableName}";
 
-create table fuel_entries (
+create table "${tableName}" (
   id uuid default gen_random_uuid() primary key,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   date date not null,
@@ -532,21 +552,21 @@ create table fuel_entries (
 );
 
 -- 2. ปิด RLS ปลดล็อกตาราง ให้ทุกคนเขียน/มองเห็นข้อมูลค่าน้ำมันร่วมกันอย่างอิสระ
-alter table fuel_entries disable row level security;`}
+alter table "${tableName}" disable row level security;`}
             </pre>
             <button 
               onClick={() => {
-                navigator.clipboard.writeText(`drop table if exists fuel_entries;
+                navigator.clipboard.writeText(`drop table if exists "${tableName}";
 
-create table fuel_entries (
+create table "${tableName}" (
   id uuid default gen_random_uuid() primary key,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   date date not null,
   cost numeric not null
 );
 
-alter table fuel_entries disable row level security;`);
-                alert("คัดลอกชุดคำสั่ง SQL สำหรับ Supabase เรียบร้อยแล้ว!");
+alter table "${tableName}" disable row level security;`);
+                alert(`คัดลอกชุดคำสั่ง SQL สำหรับตาราง "${tableName}" เรียบร้อยแล้ว!`);
               }}
               className="absolute top-2.5 right-2.5 bg-slate-850/90 hover:bg-slate-700/80 text-white font-semibold text-[9px] px-2.5 py-1.5 rounded-md border border-slate-700/50 transition cursor-pointer"
             >
