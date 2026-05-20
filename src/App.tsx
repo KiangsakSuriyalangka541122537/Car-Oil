@@ -23,12 +23,7 @@ import {
   Sparkles,
   Layers,
   Database,
-  Cloud,
   CheckCircle,
-  HelpCircle,
-  Github,
-  ChevronDown,
-  ChevronUp,
 } from "lucide-react";
 
 const STORAGE_KEY = "fuel_tracker_entries_v1";
@@ -51,7 +46,6 @@ export default function App() {
   const [currentTab, setCurrentTab] = useState<"dashboard" | "charts" | "report">("dashboard");
   const [supabaseLoading, setSupabaseLoading] = useState(false);
   const [supabaseError, setSupabaseError] = useState<string | null>(null);
-  const [showGuide, setShowGuide] = useState(true);
 
   // Sync to localStorage
   useEffect(() => {
@@ -255,17 +249,6 @@ export default function App() {
 
           {/* Quick controls */}
           <div className="flex items-center gap-2 ml-auto sm:ml-0">
-            {!isSupabaseConfigured && (
-              <button
-                onClick={() => setShowGuide((prev) => !prev)}
-                className="h-10 px-3.5 rounded-xl border border-slate-200 hover:border-slate-800 text-slate-600 hover:bg-slate-50 text-xs font-semibold flex items-center gap-1.5 transition duration-155 cursor-pointer"
-                title="คู่มือเชื่อมระบบจริง"
-              >
-                <HelpCircle className="w-3.5 h-3.5 text-slate-500" />
-                {showGuide ? "ซ่อนคู่มือขึ้นระบบจริง" : "คู่มือขึ้นระบบจริง"}
-              </button>
-            )}
-
             {entries.length === 0 ? (
               <button
                 id="reset-mock-btn"
@@ -293,136 +276,6 @@ export default function App() {
 
       {/* Principal body container */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
-
-        {/* Real system deployment guide */}
-        <section className="mb-6 no-print">
-          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm transition-all duration-300">
-            <div 
-              onClick={() => setShowGuide(!showGuide)}
-              className="px-5 py-4 bg-slate-900 text-white flex items-center justify-between cursor-pointer select-none"
-            >
-              <div className="flex items-center gap-3">
-                <div className="p-1.5 bg-slate-800 rounded-lg">
-                  <Cloud className="w-4 h-4 text-emerald-400" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-semibold tracking-tight">
-                    🚀 คู่มือเชื่อมต่อระบบจริงกับ GitHub / Supabase / Vercel
-                  </h3>
-                  <p className="text-xs text-slate-400 mt-0.5 font-sans font-light">
-                    เพื่อเข้าใช้งานระบบจริงด้วยฐานข้อมูลคลาวด์ถาวร พร้อมเปิดใช้งานแบบสาธารณะ
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="text-[10px] bg-slate-800 text-slate-300 font-semibold px-2.5 py-1 rounded-full border border-slate-705">
-                  {isSupabaseConfigured ? "เชื่อมโยงสำเสร็จ" : "คลิกดูขั้นตอนเตรียมระบบ"}
-                </span>
-                {showGuide ? <ChevronUp className="w-4 h-4 text-slate-300" /> : <ChevronDown className="w-4 h-4 text-slate-300" />}
-              </div>
-            </div>
-
-            {showGuide && (
-              <div className="p-5 sm:p-6 border-t border-slate-100 bg-slate-50/30 space-y-6">
-                
-                {/* 3 Columns structure */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  
-                  {/* Step 1: GitHub */}
-                  <div className="bg-white p-4.5 rounded-xl border border-slate-150 shadow-sm relative overflow-hidden flex flex-col justify-between">
-                    <div>
-                      <div className="flex items-center gap-2.5 mb-3">
-                        <div className="p-2 bg-slate-100 rounded-lg text-slate-800">
-                          <Github className="w-4 h-4" />
-                        </div>
-                        <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">1. อัปโหลดขึ้น GitHub</h4>
-                      </div>
-                      <p className="text-xs text-slate-500 leading-relaxed font-light">
-                        นำซอร์สโค้ดนี้ส่งขึ้น GitHub เพื่อเป็นสะพานเชื่อมสำหรับการทำ Deployment แบบอัตโนมัติ (CI/CD)
-                      </p>
-                      <ol className="mt-3.5 space-y-2 text-[11px] text-slate-600 list-decimal pl-4 leading-relaxed font-sans">
-                        <li>สร้าง Repository ใหม่บนคลาวด์ GitHub</li>
-                        <li>สั่งรัน <code className="bg-slate-100 px-1 py-0.5 rounded font-mono text-[10px]">git init</code> ใต้โฟลเดอร์โครงการ</li>
-                        <li>Commit และ Push โค้ดทั้งหมดขึ้น GitHub</li>
-                      </ol>
-                    </div>
-                  </div>
-
-                  {/* Step 2: Supabase */}
-                  <div className="bg-white p-4.5 rounded-xl border border-slate-150 shadow-sm relative overflow-hidden flex flex-col justify-between">
-                    <div>
-                      <div className="flex items-center gap-2.5 mb-3">
-                        <div className="p-2 bg-emerald-50 rounded-lg text-emerald-600">
-                          <Database className="w-4 h-4" />
-                        </div>
-                        <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">2. ตั้งค่า Supabase</h4>
-                      </div>
-                      <p className="text-xs text-slate-500 leading-relaxed font-light">
-                        สร้างฐานข้อมูลบนคลาวด์สำหรับบันทึกประวัติตัวจริง โดยใช้โครงสร้างตารางข้อมูลเดียวกับระบบ
-                      </p>
-                      <ol className="mt-3.5 space-y-2 text-[11px] text-slate-600 list-decimal pl-4 leading-relaxed font-sans">
-                        <li>ลงทะเบียนแอปฟรีที่เว็บ Supabase.com</li>
-                        <li>เขียนตารางใน SQL Editor ด้วยชุดคำสั่ง:
-                          <pre className="bg-slate-900 text-slate-300 p-2 rounded-md font-mono text-[9px] mt-1.5 overflow-x-auto border border-slate-850">
-{`create table fuel_entries (
-  id uuid default gen_random_uuid() primary key,
-  date date not null,
-  cost numeric not null
-);`}
-                          </pre>
-                        </li>
-                        <li>คัดลอกค่า <strong className="text-slate-700">Project URL</strong> และ <strong className="text-slate-700">Anon API Key</strong> มาเตรียมไว้</li>
-                      </ol>
-                    </div>
-                  </div>
-
-                  {/* Step 3: Vercel */}
-                  <div className="bg-white p-4.5 rounded-xl border border-slate-150 shadow-sm relative overflow-hidden flex flex-col justify-between">
-                    <div>
-                      <div className="flex items-center gap-2.5 mb-3">
-                        <div className="p-2 bg-slate-900 rounded-lg text-white">
-                          <Cloud className="w-4 h-4" />
-                        </div>
-                        <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">3. ติดตั้งบน Vercel</h4>
-                      </div>
-                      <p className="text-xs text-slate-500 leading-relaxed font-light">
-                        จัดจำหน่ายใช้งานจริงโดยไม่เสียค่าใช้จ่ายผ่าน Vercel และเพิ่มฟังก์ชันประมวลผลเซกเตอร์สิ่งแวดล้อม
-                      </p>
-                      <ol className="mt-3.5 space-y-2 text-[11px] text-slate-600 list-decimal pl-4 leading-relaxed font-sans">
-                        <li>เลือก Import จาก GitHub ที่เชื่อมมาที่ Vercel</li>
-                        <li>กรอกตัวแปร <strong className="text-slate-700">Environment Variables</strong> 2 ตัวนี้:
-                          <ul className="mt-1 space-y-1 list-disc pl-3 text-[10px] text-slate-500">
-                            <li><code className="bg-slate-100 px-1 py-0.5 font-mono text-[9px]">VITE_SUPABASE_URL</code></li>
-                            <li><code className="bg-slate-100 px-1 py-0.5 font-mono text-[9px]">VITE_SUPABASE_ANON_KEY</code></li>
-                          </ul>
-                        </li>
-                        <li>คลิก <strong className="text-slate-700">Deploy</strong> เพื่อเริ่มต้นรันแอปบนโดเมนถาวรทันที!</li>
-                      </ol>
-                    </div>
-                  </div>
-
-                </div>
-
-                <div className="flex sm:flex-row flex-col justify-between items-start sm:items-center gap-3 pt-3 border-t border-slate-150/60 bg-white/40 p-4 rounded-xl text-xs text-slate-500">
-                  <div className="flex items-center gap-2">
-                    <span className="flex h-2.5 w-2.5 relative">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-                    </span>
-                    <span><strong>สถานะระบบปัจจุบัน:</strong> {isSupabaseConfigured ? "เชื่อมต่อกับคลาวด์สตรีม Supabase เรียบร้อยแล้ว ข้อมูลจะบันทึกขึ้น Postgres ทันที" : "รันบนเบราว์เซอร์โหมดออฟไลน์ (Local Web Storage Engine)"}</span>
-                  </div>
-                  <button 
-                    onClick={() => setShowGuide(false)}
-                    className="text-slate-500 hover:text-slate-800 font-semibold px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-white transition cursor-pointer self-end sm:self-auto"
-                  >
-                    ซ่อนคู่มือบทเรียนนี้
-                  </button>
-                </div>
-
-              </div>
-            )}
-          </div>
-        </section>
         
         {/* DASHBOARD METRICS */}
         <section className="mb-6 no-print">
