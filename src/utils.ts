@@ -162,24 +162,37 @@ export function calculateOverallAverages(entries: FuelEntry[]): AverageMetrics {
   }
 
   const sorted = getSortedEntries(entries);
-
-  // Group by week, month, year to see how many unique buckets exist
-  const uniqueWeeks = new Set<string>();
-  const uniqueMonths = new Set<string>();
-  const uniqueYears = new Set<string>();
   let totalCost = 0;
-
   sorted.forEach((entry) => {
-    const { year, week } = getWeekNumber(entry.date);
-    uniqueWeeks.add(`${year}-W${week}`);
-    uniqueMonths.add(entry.date.substring(0, 7));
-    uniqueYears.add(entry.date.substring(0, 4));
     totalCost += entry.cost;
   });
 
-  const numWeeks = uniqueWeeks.size || 1;
-  const numMonths = uniqueMonths.size || 1;
-  const numYears = uniqueYears.size || 1;
+  const firstEntry = sorted[0];
+  const lastEntry = sorted[sorted.length - 1];
+
+  const dMin = new Date(firstEntry.date);
+  const dMax = new Date(lastEntry.date);
+
+  // 1. Calculate Calendar Months Spanned (e.g. January to May spans 5 months)
+  const yearDiff = dMax.getFullYear() - dMin.getFullYear();
+  const monthDiff = dMax.getMonth() - dMin.getMonth();
+  const numMonths = Math.max(1, yearDiff * 12 + monthDiff + 1);
+
+  // 2. Calculate Calendar Weeks Spanned (using week numbers)
+  const { year: minYear, week: minWeek } = getWeekNumber(firstEntry.date);
+  const { year: maxYear, week: maxWeek } = getWeekNumber(lastEntry.date);
+  
+  let numWeeks = 1;
+  if (maxYear === minYear) {
+    numWeeks = Math.max(1, maxWeek - minWeek + 1);
+  } else {
+    // Cross year calendar weeks assuming roughly 52 weeks per year
+    const diffYears = maxYear - minYear;
+    numWeeks = Math.max(1, diffYears * 52 + (maxWeek - minWeek) + 1);
+  }
+
+  // 3. Calculate Calendar Years Spanned
+  const numYears = Math.max(1, dMax.getFullYear() - dMin.getFullYear() + 1);
 
   return {
     weeklyAverage: totalCost / numWeeks,
