@@ -309,7 +309,7 @@ export default function App() {
 
         {/* DASHBOARD METRICS */}
         <section className="mb-6 no-print">
-          <FuelStatsDashboard metrics={metrics} totalEntries={entries.length} />
+          <FuelStatsDashboard metrics={metrics} totalEntries={entries.length} entries={entries} />
         </section>
 
         {/* CONTROLLER NAVIGATION TABS */}

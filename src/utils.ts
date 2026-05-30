@@ -158,6 +158,9 @@ export function calculateOverallAverages(entries: FuelEntry[]): AverageMetrics {
       monthlyAverage: 0,
       yearlyAverage: 0,
       allTimeTotal: 0,
+      weeksSpanned: 0,
+      monthsSpanned: 0,
+      yearsSpanned: 0,
     };
   }
 
@@ -194,11 +197,16 @@ export function calculateOverallAverages(entries: FuelEntry[]): AverageMetrics {
   // 3. Calculate Calendar Years Spanned
   const numYears = Math.max(1, dMax.getFullYear() - dMin.getFullYear() + 1);
 
+  const weeklyAverage = totalCost / numWeeks;
+
   return {
-    weeklyAverage: totalCost / numWeeks,
-    monthlyAverage: totalCost / numMonths,
-    yearlyAverage: totalCost / numYears,
+    weeklyAverage: weeklyAverage,
+    monthlyAverage: weeklyAverage * 4,     // Monthly Average is calculated consistently as Weekly Average * 4 weeks
+    yearlyAverage: weeklyAverage * 52,     // Yearly Average is calculated consistently as Weekly Average * 52 weeks
     allTimeTotal: totalCost,
+    weeksSpanned: numWeeks,
+    monthsSpanned: numMonths,
+    yearsSpanned: numYears,
   };
 }
 

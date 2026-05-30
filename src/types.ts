@@ -18,4 +18,7 @@ export interface AverageMetrics {
   monthlyAverage: number;
   yearlyAverage: number;
   allTimeTotal: number;
+  weeksSpanned?: number;
+  monthsSpanned?: number;
+  yearsSpanned?: number;
 }
