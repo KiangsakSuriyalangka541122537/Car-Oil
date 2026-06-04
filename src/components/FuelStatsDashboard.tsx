@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { AverageMetrics, FuelEntry } from "../types";
-import { TrendingUp, CalendarDays, CalendarRange, Milestone, HelpCircle, ChevronDown, ChevronUp, BookOpen, AlertCircle } from "lucide-react";
+import { TrendingUp, CalendarDays, CalendarRange, Milestone, HelpCircle, ChevronDown, ChevronUp, BookOpen, AlertCircle, PiggyBank, Coins } from "lucide-react";
 import { formatThaiDate, getSortedEntries } from "../utils";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -87,7 +87,7 @@ export default function FuelStatsDashboard({ metrics, totalEntries, entries = []
         {/* Card 4: Cumulative Total Cost */}
         <div id="stat-total-card" className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-start gap-4 hover:border-slate-300 transition-all duration-300">
           <div className="p-2.5 bg-slate-900 text-white rounded-xl">
-            <Milestone className="w-5 h-5" />
+            <Coins className="w-5 h-5 text-white" />
           </div>
           <div>
             <p className="text-xs font-semibold text-slate-500 mb-0.5">ยอดใช้จ่ายรวมสะสม</p>
