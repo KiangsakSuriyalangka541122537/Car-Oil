@@ -1,6 +1,6 @@
 {
   "name": "Car Fuel Expense Tracker",
-  "description": "ระบบบันทึกค่าน้ำมันรถยนต์ คำนวณค่าเฉลี่ยรายสัปดาห์ รายเดือน รายปี อัตโนมัติ พร้อมฟังก์ชันส่งออกรายงานเป็นไฟล์ PDF",
+  "description": "ระบบบันทึกค่าใช้จ่ายรถยนต์ (ค่าน้ำมัน, ค่าน้ำมันเครื่อง, อะไหล่/ซ่อมบำรุง) คำนวณค่าเฉลี่ยสถิติ และฟังก์ชันรายงานพิมพ์ PDF/ส่งออก CSV",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

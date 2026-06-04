@@ -3,6 +3,7 @@ export interface FuelEntry {
   date: string; // YYYY-MM-DD
   cost: number; // Baht
   notes?: string;
+  category?: "fuel" | "engine_oil" | "maintenance";
 }
 
 export interface PeriodSummary {

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { FuelEntry } from "../types";
 import { formatThaiDate } from "../utils";
-import { Trash2, Edit3, Search, Calendar, Landmark, AlertTriangle, X } from "lucide-react";
+import { Trash2, Edit3, Search, Calendar, Landmark, AlertTriangle, X, Fuel, Droplet, Wrench } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
 interface FuelHistoryTableProps {
@@ -13,6 +13,27 @@ interface FuelHistoryTableProps {
 export default function FuelHistoryTable({ entries, onDelete, onEdit }: FuelHistoryTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
   // Confirm Delete Modal States
+
+  const getCategoryBadge = (category: "fuel" | "engine_oil" | "maintenance" | undefined) => {
+    const iconClass = "w-3.5 h-3.5 text-slate-800";
+    let icon = <Fuel className={iconClass} />;
+    let label = "ค่าน้ำมัน";
+    
+    if (category === "engine_oil") {
+      icon = <Droplet className={iconClass} />;
+      label = "ค่าน้ำมันเครื่อง";
+    } else if (category === "maintenance") {
+      icon = <Wrench className={iconClass} />;
+      label = "ค่าอะไหล่ / ซ่อมบำรุง";
+    }
+
+    return (
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-50 text-slate-800 border border-slate-200">
+        {icon}
+        <span>{label}</span>
+      </span>
+    );
+  };
   const [entryToDelete, setEntryToDelete] = useState<FuelEntry | null>(null);
 
   const sortedEntries = [...entries].sort((a, b) => b.date.localeCompare(a.date)); // Newest first
@@ -53,7 +74,7 @@ export default function FuelHistoryTable({ entries, onDelete, onEdit }: FuelHist
       <div id="history-mobile-list" className="block md:hidden divide-y divide-slate-100 bg-white">
         {filteredEntries.length === 0 ? (
           <div className="p-8 text-center text-slate-400 text-xs">
-            ไม่พบข้อมูลประวัติการเติมน้ำมัน
+            ไม่พบข้อมูลประวัติการบันทึก
           </div>
         ) : (
           filteredEntries.map((entry) => (
@@ -64,6 +85,17 @@ export default function FuelHistoryTable({ entries, onDelete, onEdit }: FuelHist
                   <div className="font-semibold text-slate-800 text-sm flex items-center gap-1.5">
                     <Calendar className="w-4 h-4 text-slate-400" />
                     {formatThaiDate(entry.date)}
+                  </div>
+                  {/* Category Badge & Notes */}
+                  <div className="flex flex-col gap-1.5 pt-1">
+                    <div className="w-fit">
+                      {getCategoryBadge(entry.category)}
+                    </div>
+                    {entry.notes && (
+                      <span className="text-xs text-slate-500 bg-slate-50 px-2 py-1 rounded border border-slate-100">
+                        {entry.notes}
+                      </span>
+                    )}
                   </div>
                 </div>
 
@@ -106,7 +138,9 @@ export default function FuelHistoryTable({ entries, onDelete, onEdit }: FuelHist
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 text-xs font-semibold tracking-wider">
-              <th className="px-6 py-3.5">วันที่เติมน้ำมัน</th>
+              <th className="px-6 py-3.5">วันที่ทำรายการ</th>
+              <th className="px-6 py-3.5">ประเภทค่าใช้จ่าย</th>
+              <th className="px-6 py-3.5">รายละเอียดเพิ่มเติม</th>
               <th className="px-6 py-3.5 text-right">จำนวนเงิน (บาท)</th>
               <th className="px-6 py-3.5 text-center">จัดการ</th>
             </tr>
@@ -114,8 +148,8 @@ export default function FuelHistoryTable({ entries, onDelete, onEdit }: FuelHist
           <tbody className="divide-y divide-slate-150 text-slate-800 text-sm bg-white">
             {filteredEntries.length === 0 ? (
               <tr>
-                <td colSpan={3} className="px-6 py-10 text-center text-slate-400 text-xs">
-                  ไม่พบข้อมูลรายการเติมน้ำมัน
+                <td colSpan={5} className="px-6 py-10 text-center text-slate-400 text-xs">
+                  ไม่พบข้อมูลรายการบันทึกค่าใช้จ่าย
                 </td>
               </tr>
             ) : (
@@ -129,8 +163,18 @@ export default function FuelHistoryTable({ entries, onDelete, onEdit }: FuelHist
                     </div>
                   </td>
 
+                  {/* Category Badge */}
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {getCategoryBadge(entry.category)}
+                  </td>
+
+                  {/* Notes */}
+                  <td className="px-6 py-4 max-w-[250px] truncate text-slate-650 font-medium">
+                    {entry.notes || "-"}
+                  </td>
+
                   {/* Total Cost */}
-                  <td className="px-6 py-4 text-right font-mono font-semibold text-slate-900 whitespace-nowrap">
+                  <td className="px-6 py-4 text-right font-mono font-bold text-slate-900 whitespace-nowrap">
                     {entry.cost.toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ฿
                   </td>
 

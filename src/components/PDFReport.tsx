@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { FuelEntry, PeriodSummary, AverageMetrics } from "../types";
 import { formatThaiDate } from "../utils";
-import { Printer, FileSpreadsheet, User, Layers, TableProperties } from "lucide-react";
+import { Printer, FileSpreadsheet, User, Layers, TableProperties, Fuel, Droplet, Wrench } from "lucide-react";
 import jsPDF from "jspdf";
 
 interface PDFReportProps {
@@ -34,14 +34,28 @@ export default function PDFReport({
     const headers = [
       "ID",
       "วันที่",
+      "ประเภทค่าใช้จ่าย",
+      "รายละเอียดเพิ่มเติม",
       "จำนวนเงิน (บาท)",
     ];
 
-    const rows = calculatedEntries.map((e) => [
-      e.id,
-      e.date,
-      e.cost,
-    ]);
+    const rows = calculatedEntries.map((e) => {
+      const categoryLabel = 
+        e.category === "engine_oil" 
+          ? "ค่าน้ำมันเครื่อง" 
+          : e.category === "maintenance" 
+          ? "ค่าอะไหล่และซ่อมบำรุง" 
+          : "ค่าน้ำมัน";
+      // Escape commas in notes to prevent CSV shifting
+      const notesEscaped = e.notes ? `"${e.notes.replace(/"/g, '""')}"` : "";
+      return [
+        e.id,
+        e.date,
+        categoryLabel,
+        notesEscaped,
+        e.cost,
+      ];
+    });
 
     // Add BOM for UTF-8 Excel compatibility (important for Thai script!)
     const CSV_CONTENT =
@@ -54,7 +68,7 @@ export default function PDFReport({
     link.setAttribute("href", url);
     link.setAttribute(
       "download",
-      `รายงานบันทึกค่าน้ำมัน_${new Date().toISOString().split("T")[0]}.csv`
+      `รายงานบันทึกค่าใช้จ่ายรถยนต์_${new Date().toISOString().split("T")[0]}.csv`
     );
     document.body.appendChild(link);
     link.click();
@@ -171,6 +185,8 @@ export default function PDFReport({
     doc.setFontSize(8);
     doc.setFont("helvetica", "bold");
     doc.text("Date", 18, currentY + 5.5);
+    doc.text("Category", 52, currentY + 5.5);
+    doc.text("Description/Notes", 90, currentY + 5.5);
     doc.text("Amount (THB)", 165, currentY + 5.5);
 
     currentY += 8;
@@ -190,6 +206,20 @@ export default function PDFReport({
       doc.setFontSize(8);
       
       doc.text(entry.date, 18, currentY + 5);
+      
+      // Category representation for universal font support
+      const catText = 
+        entry.category === "engine_oil" 
+          ? "Engine Oil" 
+          : entry.category === "maintenance" 
+          ? "Maintenance" 
+          : "Fuel";
+      doc.text(catText, 52, currentY + 5);
+
+      // Description representation for universal font support (replace non-latin or limit length)
+      const descLabel = entry.notes || "-";
+      // Clean display of latin chars safely
+      doc.text(descLabel.length > 35 ? descLabel.substring(0, 35) + "..." : descLabel, 90, currentY + 5);
       
       doc.setFont("helvetica", "bold");
       doc.text(`${entry.cost.toLocaleString()} THB`, 165, currentY + 5);
@@ -211,59 +241,30 @@ export default function PDFReport({
   return (
     <div id="pdf-report-tab-container" className="space-y-6">
 
-      {/* Control panel & metadata configuration */}
-      <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm no-print">
-        <h3 className="text-base font-semibold text-slate-800 flex items-center gap-2 mb-4">
-          <Printer className="w-5 h-5 text-slate-500" />
-          สรุปรายงานและส่งออกข้อมูล
-        </h3>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <div>
-            <label className="block text-xs font-semibold text-slate-500 mb-2 flex items-center gap-1.5 ">
-              <User className="w-4 h-4 text-slate-400" />
-              ชื่อคนขับ / เจ้าของรถ
-            </label>
-            <input
-              id="report-driver-name"
-              type="text"
-              value={driverName}
-              onChange={(e) => setDriverName(e.target.value)}
-              placeholder="กรอกชื่อ-นามสกุล"
-              className="w-full h-10 px-3 rounded-xl border border-slate-200 focus:outline-none focus:border-slate-800 text-sm text-slate-800"
-            />
-          </div>
-
-          <div className="flex items-end gap-2.5">
-            <button
-              id="print-btn"
-              onClick={handlePrint}
-              type="button"
-              className="flex-1 h-10 px-4 text-white bg-slate-900 hover:bg-slate-800 rounded-xl shadow-sm transition inline-flex items-center justify-center gap-1.5 font-semibold text-xs sm:text-sm cursor-pointer"
-            >
-              <Printer className="w-4 h-4" />
-              พิมพ์รายงาน / เซฟ PDF
-            </button>
-
-            <button
-              id="export-csv-btn"
-              onClick={exportToCSV}
-              type="button"
-              className="flex-1 h-10 px-4 text-slate-700 bg-slate-50 border border-slate-200 rounded-xl hover:bg-white shadow-sm transition inline-flex items-center justify-center gap-1.5 font-semibold text-xs sm:text-sm cursor-pointer"
-            >
-              <FileSpreadsheet className="w-4 h-4" />
-              ส่งออก CSV
-            </button>
-          </div>
-        </div>
-      </div>
-
       {/* --- PRINTABLE WEB TEMPLATE --- */}
       <div id="printable-sheet" className="bg-white rounded-2xl border border-slate-200 max-w-[210mm] mx-auto p-6 md:p-10 shadow-sm print-card relative text-slate-800 font-sans">
         
-        {/* Absolute Ribbon for visual feedback in Web view */}
-        <div className="absolute top-5 right-5 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 font-semibold text-[11px] px-3 py-1 rounded no-print cursor-pointer transition select-none" onClick={handlePrint}>
-          คลิกเปิดหน้าต่างพรีวิวพิมพ์
+        {/* Sleek inline control actions inside the template (hidden when printing) */}
+        <div className="flex sm:absolute sm:top-5 sm:right-5 items-center justify-end gap-2 mb-6 sm:mb-0 no-print w-full sm:w-auto">
+          <button
+            id="print-btn-inline"
+            onClick={handlePrint}
+            type="button"
+            className="flex-1 sm:flex-none h-10 sm:h-8 px-3.5 sm:px-3 text-white bg-slate-900 hover:bg-slate-800 rounded-xl sm:rounded-lg shadow-sm transition duration-200 inline-flex items-center justify-center gap-1.5 font-bold text-xs cursor-pointer active:scale-[0.98]"
+          >
+            <Printer className="w-3.5 h-3.5" />
+            <span>พิมพ์รายงาน / PDF</span>
+          </button>
+          
+          <button
+            id="export-csv-btn-inline"
+            onClick={exportToCSV}
+            type="button"
+            className="flex-1 sm:flex-none h-10 sm:h-8 px-3.5 sm:px-3 text-slate-700 bg-slate-100/50 hover:bg-slate-100 border border-slate-200 rounded-xl sm:rounded-lg shadow-sm transition duration-200 inline-flex items-center justify-center gap-1.5 font-bold text-xs cursor-pointer active:scale-[0.98]"
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5" />
+            <span>ส่งออก CSV</span>
+          </button>
         </div>
 
         {/* Document Header */}
@@ -421,43 +422,46 @@ export default function PDFReport({
           <table className="w-full text-left text-xs border-collapse bg-white">
             <thead>
               <tr className="bg-slate-50 text-slate-500 border-b border-slate-200 font-semibold">
-                <th className="p-3">วันที่เติม</th>
+                <th className="p-3">วันที่ทำรายการ</th>
+                <th className="p-3">ประเภทค่าใช้จ่าย</th>
                 <th className="p-3 text-right font-semibold text-slate-800">ยอดเงินสุทธิ (บาท)</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 bg-white">
               {calculatedEntries.length === 0 ? (
                 <tr>
-                  <td colSpan={2} className="p-5 text-center text-slate-400">ไม่มีข้อมูลรายการสำหรับรายงาน</td>
+                  <td colSpan={3} className="p-5 text-center text-slate-400">ไม่มีข้อมูลรายการสำหรับรายงาน</td>
                 </tr>
               ) : (
                 calculatedEntries.slice(0, 10).map((e) => (
                   <tr key={e.id} className="hover:bg-slate-50/50">
                     <td className="p-3 font-medium whitespace-nowrap">{formatThaiDate(e.date)}</td>
+                    <td className="p-3 font-semibold text-slate-700 whitespace-nowrap">
+                      <div className="flex items-center gap-1.5 text-slate-800">
+                        {e.category === "engine_oil" ? (
+                          <>
+                            <Droplet className="w-3.5 h-3.5 text-slate-900" />
+                            <span>ค่าน้ำมันเครื่อง</span>
+                          </>
+                        ) : e.category === "maintenance" ? (
+                          <>
+                            <Wrench className="w-3.5 h-3.5 text-slate-900" />
+                            <span>ค่าอะไหล่ / ซ่อมบำรุง</span>
+                          </>
+                        ) : (
+                          <>
+                            <Fuel className="w-3.5 h-3.5 text-slate-900" />
+                            <span>ค่าน้ำมัน</span>
+                          </>
+                        )}
+                      </div>
+                    </td>
                     <td className="p-3 text-right font-mono font-bold text-slate-900 whitespace-nowrap">{e.cost.toLocaleString()} ฿</td>
                   </tr>
                 ))
               )}
             </tbody>
           </table>
-        </div>
-
-        {/* Document Footer Signature field */}
-        <div className="mt-12 pt-6 border-t border-slate-200 grid grid-cols-2 gap-8 text-center text-xs">
-          <div>
-            <p className="text-slate-500 mb-10 font-semibold">ลงชื่อผู้รายงาน (Driver Signature)</p>
-            <div className="w-48 mx-auto border-b border-slate-300 pb-1 text-slate-800 text-sm">
-              {driverName || "................................................"}
-            </div>
-            <p className="text-[10px] text-slate-400 mt-1">วันที่สรุป: {new Date().toLocaleDateString("th-TH")}</p>
-          </div>
-          <div>
-            <p className="text-slate-500 mb-10 font-semibold">ลงชื่อผู้ตรวจสอบอนุมัติ</p>
-            <div className="w-48 mx-auto border-b border-slate-300 pb-1 text-slate-300">
-              ................................................
-            </div>
-            <p className="text-[10px] text-slate-400 mt-1">ตำแหน่ง: ผู้ดูแลฝ่ายบัญชี / ตรวจสอบ</p>
-          </div>
         </div>
 
       </div>

@@ -75,6 +75,8 @@ export default function App() {
             id: item.id,
             date: item.date,
             cost: Number(item.cost),
+            category: item.category || "fuel",
+            notes: item.notes || "",
           }));
           setEntries(formatted);
         }
@@ -116,9 +118,27 @@ export default function App() {
             .update({
               date: entryData.date,
               cost: entryData.cost,
+              category: entryData.category || "fuel",
+              notes: entryData.notes || "",
             })
             .eq("id", updatedId);
-          if (error) throw error;
+          
+          if (error) {
+            const isMissingColumn = error.code === "42703" || (error.message && error.message.toLowerCase().includes("column"));
+            if (isMissingColumn) {
+              console.warn("Supabase columns 'category' or 'notes' do not exist in the table. Retrying with basic columns.");
+              const { error: retryError } = await supabase
+                .from(tableName)
+                .update({
+                  date: entryData.date,
+                  cost: entryData.cost,
+                })
+                .eq("id", updatedId);
+              if (retryError) throw retryError;
+            } else {
+              throw error;
+            }
+          }
         } catch (err: any) {
           console.error("Cloud edit failed:", err);
           setSupabaseError(`แก้ไขข้อมูลบน Cloud ล้มเหลว: ${err.message || err}`);
@@ -143,9 +163,29 @@ export default function App() {
                 id: generatedId,
                 date: entryData.date,
                 cost: entryData.cost,
+                category: entryData.category || "fuel",
+                notes: entryData.notes || "",
               },
             ]);
-          if (error) throw error;
+          
+          if (error) {
+            const isMissingColumn = error.code === "42703" || (error.message && error.message.toLowerCase().includes("column"));
+            if (isMissingColumn) {
+              console.warn("Supabase columns 'category' or 'notes' do not exist in the table. Retrying with basic columns.");
+              const { error: retryError } = await supabase
+                .from(tableName)
+                .insert([
+                  {
+                    id: generatedId,
+                    date: entryData.date,
+                    cost: entryData.cost,
+                  },
+                ]);
+              if (retryError) throw retryError;
+            } else {
+              throw error;
+            }
+          }
         } catch (err: any) {
           console.error("Cloud insert failed:", err);
           setSupabaseError(`เพิ่มข้อมูลลง Cloud ล้มเหลว: ${err.message || err}`);
@@ -220,6 +260,8 @@ export default function App() {
               id: entry.id,
               date: entry.date,
               cost: entry.cost,
+              category: entry.category || "fuel",
+              notes: entry.notes || "",
             });
           if (error) throw error;
         }
