@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { FuelEntry, PeriodSummary, AverageMetrics } from "../types";
 import { formatThaiDate } from "../utils";
-import { Printer, FileSpreadsheet, User, Layers, TableProperties, Fuel, Droplet, Wrench } from "lucide-react";
+import { Printer, FileSpreadsheet, User, Layers, TableProperties, Fuel, Droplet, Wrench, Disc } from "lucide-react";
 import jsPDF from "jspdf";
 
 interface PDFReportProps {
@@ -45,6 +45,8 @@ export default function PDFReport({
           ? "ค่าน้ำมันเครื่อง" 
           : e.category === "maintenance" 
           ? "ค่าอะไหล่และซ่อมบำรุง" 
+          : e.category === "tyres"
+          ? "เปลี่ยนยาง"
           : "ค่าน้ำมัน";
       // Escape commas in notes to prevent CSV shifting
       const notesEscaped = e.notes ? `"${e.notes.replace(/"/g, '""')}"` : "";
@@ -213,6 +215,8 @@ export default function PDFReport({
           ? "Engine Oil" 
           : entry.category === "maintenance" 
           ? "Maintenance" 
+          : entry.category === "tyres"
+          ? "Tyres"
           : "Fuel";
       doc.text(catText, 52, currentY + 5);
 
@@ -447,6 +451,11 @@ export default function PDFReport({
                           <>
                             <Wrench className="w-3.5 h-3.5 text-slate-900" />
                             <span>ค่าอะไหล่ / ซ่อมบำรุง</span>
+                          </>
+                        ) : e.category === "tyres" ? (
+                          <>
+                            <Disc className="w-3.5 h-3.5 text-slate-900" />
+                            <span>เปลี่ยนยาง</span>
                           </>
                         ) : (
                           <>

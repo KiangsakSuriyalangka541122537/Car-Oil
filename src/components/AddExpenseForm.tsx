@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { FuelEntry } from "../types";
-import { Calendar, DollarSign, Plus, X, Tag, Fuel, Droplet, Wrench } from "lucide-react";
+import { Calendar, DollarSign, Plus, X, Tag, Fuel, Droplet, Wrench, Disc } from "lucide-react";
 
 interface AddExpenseFormProps {
   onAdd: (entry: Omit<FuelEntry, "id"> & { id?: string }) => void;
@@ -15,7 +15,7 @@ export default function AddExpenseForm({
 }: AddExpenseFormProps) {
   const [date, setDate] = useState<string>("");
   const [cost, setCost] = useState<string>("");
-  const [category, setCategory] = useState<"fuel" | "engine_oil" | "maintenance">("fuel");
+  const [category, setCategory] = useState<"fuel" | "engine_oil" | "maintenance" | "tyres">("fuel");
   const [notes, setNotes] = useState<string>("");
   const [error, setError] = useState<string>("");
 
@@ -67,7 +67,7 @@ export default function AddExpenseForm({
       date,
       cost: costVal,
       category,
-      notes: category === "maintenance" ? notes.trim() : "",
+      notes: (category === "maintenance" || category === "tyres") ? notes.trim() : "",
     });
 
     // Reset form after successful add if not editing
@@ -91,6 +91,8 @@ export default function AddExpenseForm({
         return <Droplet className="w-4 h-4 text-slate-900" />;
       case "maintenance":
         return <Wrench className="w-4 h-4 text-slate-900" />;
+      case "tyres":
+        return <Disc className="w-4 h-4 text-slate-900" />;
       default:
         return <Tag className="w-4 h-4 text-slate-900" />;
     }
@@ -167,6 +169,12 @@ export default function AddExpenseForm({
                   <span>ค่าอะไหล่ / ซ่อมบำรุง</span>
                 </>
               )}
+              {category === "tyres" && (
+                <>
+                  <Disc className="w-4.5 h-4.5 text-slate-900" />
+                  <span>เปลี่ยนยาง</span>
+                </>
+              )}
             </div>
             <div className={`transition-transform duration-200 text-slate-500 text-[10px] ${isOpen ? "rotate-180" : ""}`}>
               ▼
@@ -187,7 +195,7 @@ export default function AddExpenseForm({
                 }`}
               >
                 <Fuel className="w-4.5 h-4.5 text-slate-900" />
-                <span>ค่าน้ำมัน (Fuel)</span>
+                <span>ค่าน้ำมัน</span>
               </button>
 
               <button
@@ -202,7 +210,21 @@ export default function AddExpenseForm({
                 }`}
               >
                 <Droplet className="w-4.5 h-4.5 text-slate-900" />
-                <span>ค่าน้ำมันเครื่อง (Engine Oil)</span>
+                <span>ค่าน้ำมันเครื่อง</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setCategory("tyres");
+                  setIsOpen(false);
+                }}
+                className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold transition duration-155 text-left cursor-pointer ${
+                  category === "tyres" ? "bg-slate-100/70 text-slate-950 font-bold" : "text-slate-700 hover:bg-slate-50"
+                }`}
+              >
+                <Disc className="w-4.5 h-4.5 text-slate-900" />
+                <span>เปลี่ยนยาง</span>
               </button>
 
               <button
@@ -216,7 +238,7 @@ export default function AddExpenseForm({
                 }`}
               >
                 <Wrench className="w-4.5 h-4.5 text-slate-900" />
-                <span>ค่าอะไหล่ / ซ่อมบำรุง (Maintenance)</span>
+                <span>ค่าอะไหล่ / ซ่อมบำรุง</span>
               </button>
             </div>
           )}
@@ -258,7 +280,7 @@ export default function AddExpenseForm({
         </div>
 
         {/* Notes Field */}
-        {category === "maintenance" && (
+        {(category === "maintenance" || category === "tyres") && (
           <div>
             <label className="block text-xs sm:text-sm font-semibold text-slate-600 mb-1.5 flex items-center gap-1.5">
               <span>💬</span>
@@ -267,7 +289,7 @@ export default function AddExpenseForm({
             <input
               id="input-notes"
               type="text"
-              placeholder="เช่น เปลี่ยนยางรถ 4 เส้น, เปลี่ยนใบปัดน้ำฝน Bosch"
+              placeholder={category === "tyres" ? "เช่น เปลี่ยนยาง Bridgestone Ecopia 4 เส้น" : "เช่น เปลี่ยนใบปัดน้ำฝน Bosch, ผ้าเบรคหน้า"}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               className={inputClass}

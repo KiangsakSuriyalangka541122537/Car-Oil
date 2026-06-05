@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { FuelEntry } from "../types";
 import { formatThaiDate } from "../utils";
-import { Trash2, Edit3, Search, Calendar, Landmark, AlertTriangle, X, Fuel, Droplet, Wrench } from "lucide-react";
+import { Trash2, Edit3, Search, Calendar, Landmark, AlertTriangle, X, Fuel, Droplet, Wrench, Disc } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
 interface FuelHistoryTableProps {
@@ -14,7 +14,7 @@ export default function FuelHistoryTable({ entries, onDelete, onEdit }: FuelHist
   const [searchTerm, setSearchTerm] = useState("");
   // Confirm Delete Modal States
 
-  const getCategoryBadge = (category: "fuel" | "engine_oil" | "maintenance" | undefined) => {
+  const getCategoryBadge = (category: "fuel" | "engine_oil" | "maintenance" | "tyres" | undefined) => {
     const iconClass = "w-3.5 h-3.5 text-slate-800";
     let icon = <Fuel className={iconClass} />;
     let label = "ค่าน้ำมัน";
@@ -25,6 +25,9 @@ export default function FuelHistoryTable({ entries, onDelete, onEdit }: FuelHist
     } else if (category === "maintenance") {
       icon = <Wrench className={iconClass} />;
       label = "ค่าอะไหล่ / ซ่อมบำรุง";
+    } else if (category === "tyres") {
+      icon = <Disc className={iconClass} />;
+      label = "เปลี่ยนยาง";
     }
 
     return (
@@ -34,6 +37,33 @@ export default function FuelHistoryTable({ entries, onDelete, onEdit }: FuelHist
       </span>
     );
   };
+  const getMonthsElapsedSince = (dateStr: string) => {
+    const recordDate = new Date(dateStr);
+    const today = new Date();
+    const diffTime = today.getTime() - recordDate.getTime();
+    const diffDays = diffTime / (1000 * 60 * 60 * 24);
+    return Math.max(0, diffDays / 30.4375);
+  };
+
+  const getMaintenanceAlertBadge = (category: string | undefined, dateStr: string) => {
+    if (!category || category === "fuel") return null;
+    
+    const elapsed = getMonthsElapsedSince(dateStr);
+    let limit = 8;
+    if (category === "maintenance") limit = 12;
+    if (category === "tyres") limit = 60;
+
+    if (elapsed >= limit) {
+      return (
+        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[9px] font-bold text-rose-600 bg-rose-50 border border-rose-200 rounded-md shadow-2xs animate-pulse">
+          <AlertTriangle className="w-2.5 h-2.5 text-rose-500 shrink-0" />
+          <span>เลยกำหนด ({elapsed.toFixed(1)} / {limit} เดือน)</span>
+        </span>
+      );
+    }
+    return null;
+  };
+
   const [entryToDelete, setEntryToDelete] = useState<FuelEntry | null>(null);
 
   const sortedEntries = [...entries].sort((a, b) => b.date.localeCompare(a.date)); // Newest first
@@ -77,59 +107,70 @@ export default function FuelHistoryTable({ entries, onDelete, onEdit }: FuelHist
             ไม่พบข้อมูลประวัติการบันทึก
           </div>
         ) : (
-          filteredEntries.map((entry) => (
-            <div key={entry.id} className="p-4 space-y-3 hover:bg-slate-50/50 transition duration-150">
-              
-              <div className="flex justify-between items-start">
-                <div className="space-y-1">
-                  <div className="font-semibold text-slate-800 text-sm flex items-center gap-1.5">
-                    <Calendar className="w-4 h-4 text-slate-400" />
-                    {formatThaiDate(entry.date)}
-                  </div>
-                  {/* Category Badge & Notes */}
-                  <div className="flex flex-col gap-1.5 pt-1">
-                    <div className="w-fit">
-                      {getCategoryBadge(entry.category)}
+          filteredEntries.map((entry) => {
+            const isRowOverdue = entry.category && entry.category !== "fuel" && getMonthsElapsedSince(entry.date) >= (entry.category === "engine_oil" ? 8 : entry.category === "maintenance" ? 12 : 60);
+            return (
+              <div 
+                key={entry.id} 
+                className={`p-4 space-y-3 transition duration-150 ${
+                  isRowOverdue 
+                    ? "bg-rose-50 md:bg-rose-50/40 border-l-4 border-rose-500 shadow-sm shadow-rose-100/50" 
+                    : "hover:bg-slate-50/50"
+                }`}
+              >
+                
+                <div className="flex justify-between items-start">
+                  <div className="space-y-1">
+                    <div className="font-semibold text-slate-800 text-sm flex items-center gap-1.5">
+                      <Calendar className="w-4 h-4 text-slate-400" />
+                      {formatThaiDate(entry.date)}
                     </div>
-                    {entry.notes && (
-                      <span className="text-xs text-slate-500 bg-slate-50 px-2 py-1 rounded border border-slate-100">
-                        {entry.notes}
-                      </span>
-                    )}
+                    {/* Category Badge & Notes */}
+                    <div className="flex flex-col gap-1.5 pt-1">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        {getCategoryBadge(entry.category)}
+                        {getMaintenanceAlertBadge(entry.category, entry.date)}
+                      </div>
+                      {entry.notes && (
+                        <span className="text-xs text-slate-500 bg-slate-50 px-2 py-1 rounded border border-slate-100">
+                          {entry.notes}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Touch Actions */}
+                  <div className="flex gap-1.5">
+                    <button
+                      id={`mobile-edit-btn-${entry.id}`}
+                      onClick={() => onEdit(entry)}
+                      className="w-8 h-8 bg-slate-50 border border-slate-200 rounded-lg text-slate-600 flex items-center justify-center transition hover:border-slate-400 cursor-pointer"
+                      title="แก้ไขข้อมูล"
+                    >
+                      <Edit3 className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      id={`mobile-delete-btn-${entry.id}`}
+                      onClick={() => setEntryToDelete(entry)}
+                      className="w-8 h-8 bg-slate-50 border border-slate-200 rounded-lg text-red-650 flex items-center justify-center transition hover:border-red-400 cursor-pointer"
+                      title="ลบข้อมูล"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
                   </div>
                 </div>
 
-                {/* Touch Actions */}
-                <div className="flex gap-1.5">
-                  <button
-                    id={`mobile-edit-btn-${entry.id}`}
-                    onClick={() => onEdit(entry)}
-                    className="w-8 h-8 bg-slate-50 border border-slate-200 rounded-lg text-slate-600 flex items-center justify-center transition hover:border-slate-400 cursor-pointer"
-                    title="แก้ไขข้อมูล"
-                  >
-                    <Edit3 className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    id={`mobile-delete-btn-${entry.id}`}
-                    onClick={() => setEntryToDelete(entry)}
-                    className="w-8 h-8 bg-slate-50 border border-slate-200 rounded-lg text-red-650 flex items-center justify-center transition hover:border-red-400 cursor-pointer"
-                    title="ลบข้อมูล"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                {/* Amount highlights */}
+                <div className="bg-slate-50/50 p-2.5 rounded-xl border border-slate-100 flex items-center justify-between">
+                  <span className="text-xs text-slate-500">จำนวนเงินที่จ่าย:</span>
+                  <span className="text-sm font-bold text-slate-900 font-mono">
+                    {entry.cost.toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท
+                  </span>
                 </div>
-              </div>
 
-              {/* Amount highlights */}
-              <div className="bg-slate-50/50 p-2.5 rounded-xl border border-slate-100 flex items-center justify-between">
-                <span className="text-xs text-slate-500">จำนวนเงินที่จ่าย:</span>
-                <span className="text-sm font-bold text-slate-900 font-mono">
-                  {entry.cost.toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท
-                </span>
               </div>
-
-            </div>
-          ))
+            );
+          })
         )}
       </div>
 
@@ -153,30 +194,42 @@ export default function FuelHistoryTable({ entries, onDelete, onEdit }: FuelHist
                 </td>
               </tr>
             ) : (
-              filteredEntries.map((entry) => (
-                <tr key={entry.id} className="hover:bg-slate-50/50 transition duration-150">
-                  {/* Date */}
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="font-semibold text-slate-900 flex items-center gap-2">
-                      <Calendar className="w-4 h-4 text-slate-400" />
-                      {formatThaiDate(entry.date)}
-                    </div>
-                  </td>
+              filteredEntries.map((entry) => {
+                const isRowOverdue = entry.category && entry.category !== "fuel" && getMonthsElapsedSince(entry.date) >= (entry.category === "engine_oil" ? 8 : entry.category === "maintenance" ? 12 : 60);
+                return (
+                  <tr 
+                    key={entry.id} 
+                    className={`transition duration-155 ${
+                      isRowOverdue 
+                        ? "bg-rose-50/40 hover:bg-rose-150/30 border-l-4 border-rose-500" 
+                        : "hover:bg-slate-50/50"
+                    }`}
+                  >
+                    {/* Date */}
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="font-semibold text-slate-900 flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-slate-400" />
+                        {formatThaiDate(entry.date)}
+                      </div>
+                    </td>
 
-                  {/* Category Badge */}
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {getCategoryBadge(entry.category)}
-                  </td>
+                    {/* Category Badge */}
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center gap-2">
+                        {getCategoryBadge(entry.category)}
+                        {getMaintenanceAlertBadge(entry.category, entry.date)}
+                      </div>
+                    </td>
 
-                  {/* Notes */}
-                  <td className="px-6 py-4 max-w-[250px] truncate text-slate-650 font-medium">
-                    {entry.notes || "-"}
-                  </td>
+                    {/* Notes */}
+                    <td className="px-6 py-4 max-w-[250px] truncate text-slate-650 font-medium">
+                      {entry.notes || "-"}
+                    </td>
 
-                  {/* Total Cost */}
-                  <td className="px-6 py-4 text-right font-mono font-bold text-slate-900 whitespace-nowrap">
-                    {entry.cost.toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ฿
-                  </td>
+                    {/* Total Cost */}
+                    <td className="px-6 py-4 text-right font-mono font-bold text-slate-900 whitespace-nowrap">
+                      {entry.cost.toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ฿
+                    </td>
 
                   {/* Actions */}
                   <td className="px-6 py-4 text-center whitespace-nowrap">
@@ -200,9 +253,10 @@ export default function FuelHistoryTable({ entries, onDelete, onEdit }: FuelHist
                     </div>
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
+              );
+            })
+          )}
+        </tbody>
         </table>
       </div>
 
