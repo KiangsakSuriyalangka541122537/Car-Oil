@@ -164,14 +164,29 @@ export function calculateOverallAverages(entries: FuelEntry[]): AverageMetrics {
     };
   }
 
-  const sorted = getSortedEntries(entries);
-  let totalCost = 0;
-  sorted.forEach((entry) => {
-    totalCost += entry.cost;
-  });
+  // Calculate total cost encompassing ALL categories
+  const totalCost = entries.reduce((sum, item) => sum + item.cost, 0);
 
-  const firstEntry = sorted[0];
-  const lastEntry = sorted[sorted.length - 1];
+  // Filter fuel-only entries for regular averages
+  const fuelEntries = entries.filter((e) => !e.category || e.category === "fuel");
+
+  if (fuelEntries.length === 0) {
+    return {
+      weeklyAverage: 0,
+      monthlyAverage: 0,
+      yearlyAverage: 0,
+      allTimeTotal: totalCost,
+      weeksSpanned: 0,
+      monthsSpanned: 0,
+      yearsSpanned: 0,
+    };
+  }
+
+  const sortedFuel = getSortedEntries(fuelEntries);
+  const totalFuelCost = sortedFuel.reduce((sum, item) => sum + item.cost, 0);
+
+  const firstEntry = sortedFuel[0];
+  const lastEntry = sortedFuel[sortedFuel.length - 1];
 
   const dMin = new Date(firstEntry.date);
   const dMax = new Date(lastEntry.date);
@@ -197,7 +212,7 @@ export function calculateOverallAverages(entries: FuelEntry[]): AverageMetrics {
   // 3. Calculate Calendar Years Spanned
   const numYears = Math.max(1, dMax.getFullYear() - dMin.getFullYear() + 1);
 
-  const weeklyAverage = totalCost / numWeeks;
+  const weeklyAverage = totalFuelCost / numWeeks;
 
   return {
     weeklyAverage: weeklyAverage,

@@ -293,13 +293,13 @@ export default function PDFReport({
         <div className="mb-6">
           <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
             <Layers className="w-4 h-4 text-slate-400" />
-            สรุปค่าเฉลี่ยสถิติสำคัญ
+            สรุปค่าเฉลี่ยสถิติสำคัญ (เฉพาะน้ำมัน)
           </h2>
           
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             
             <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
-              <span className="text-[10px] font-medium text-slate-400 block mb-0.5">ค่าเฉลี่ยรายสัปดาห์</span>
+              <span className="text-[10px] font-medium text-slate-400 block mb-0.5">ค่าเฉลี่ยรายสัปดาห์ (เฉพาะน้ำมัน)</span>
               <div className="text-lg font-bold font-mono text-slate-900">
                 {metrics.weeklyAverage.toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </div>
@@ -307,7 +307,7 @@ export default function PDFReport({
             </div>
 
             <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
-              <span className="text-[10px] font-medium text-slate-400 block mb-0.5">ค่าเฉลี่ยรายเดือน</span>
+              <span className="text-[10px] font-medium text-slate-400 block mb-0.5">ค่าเฉลี่ยรายเดือน (เฉพาะน้ำมัน)</span>
               <div className="text-lg font-bold font-mono text-slate-900">
                 {metrics.monthlyAverage.toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </div>
@@ -315,7 +315,7 @@ export default function PDFReport({
             </div>
 
             <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
-              <span className="text-[10px] font-medium text-slate-400 block mb-0.5">ค่าเฉลี่ยรายปี</span>
+              <span className="text-[10px] font-medium text-slate-400 block mb-0.5">ค่าเฉลี่ยรายปี (เฉพาะน้ำมัน)</span>
               <div className="text-lg font-bold font-mono text-slate-900">
                 {metrics.yearlyAverage.toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </div>
@@ -328,16 +328,16 @@ export default function PDFReport({
         {/* Cumulative performance overview */}
         <div className="mb-6 bg-slate-900 text-white p-4 rounded-xl grid grid-cols-2 sm:grid-cols-3 gap-4 text-center">
           <div className="border-r border-slate-800">
-            <span className="text-[10px] text-slate-400 block mb-0.5">ค่าน้ำมันสะสมทั้งหมด</span>
+            <span className="text-[10px] text-slate-400 block mb-0.5">ยอดใช้จ่ายสะสมทั้งหมด</span>
             <span className="text-sm font-bold font-mono">{metrics.allTimeTotal.toLocaleString()} ฿</span>
           </div>
           <div className="border-r border-slate-800">
-            <span className="text-[10px] text-slate-400 block mb-0.5">จำนวนครั้งเติมสะสม</span>
-            <span className="text-sm font-bold font-mono">{entries.length} ครั้ง</span>
+            <span className="text-[10px] text-slate-400 block mb-0.5">จำนวนรายการสะสม</span>
+            <span className="text-sm font-bold font-mono">{entries.length} รายการ</span>
           </div>
           <div>
-            <span className="text-[10px] text-slate-400 block mb-0.5">เฉลี่ยต่อการเติม</span>
-            <span className="text-sm font-bold font-mono text-indigo-400">
+            <span className="text-[10px] text-slate-400 block mb-0.5">เฉลี่ยต่อรายการ</span>
+            <span className="text-sm font-bold font-mono text-indigo-400 font-sans">
               {entries.length > 0 ? `${(metrics.allTimeTotal / entries.length).toFixed(1)} ฿` : "-"}
             </span>
           </div>

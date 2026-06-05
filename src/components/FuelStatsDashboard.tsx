@@ -25,7 +25,7 @@ export default function FuelStatsDashboard({ metrics, totalEntries, entries = []
             <CalendarDays className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-xs font-semibold text-slate-500 mb-0.5">ค่าเฉลี่ยรายสัปดาห์</p>
+            <p className="text-xs font-semibold text-slate-500 mb-0.5">ค่าเฉลี่ยรายสัปดาห์ (เฉพาะน้ำมัน)</p>
             <p className="text-xl sm:text-2xl font-bold font-mono text-slate-900">
               {metrics.weeklyAverage.toLocaleString("th-TH", {
                 minimumFractionDigits: 2,
@@ -45,7 +45,7 @@ export default function FuelStatsDashboard({ metrics, totalEntries, entries = []
             <CalendarRange className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-xs font-semibold text-slate-500 mb-0.5">ค่าเฉลี่ยรายเดือน</p>
+            <p className="text-xs font-semibold text-slate-500 mb-0.5">ค่าเฉลี่ยรายเดือน (เฉพาะน้ำมัน)</p>
             <p className="text-xl sm:text-2xl font-bold font-mono text-slate-900">
               {metrics.monthlyAverage.toLocaleString("th-TH", {
                 minimumFractionDigits: 2,
@@ -65,7 +65,7 @@ export default function FuelStatsDashboard({ metrics, totalEntries, entries = []
             <TrendingUp className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-xs font-semibold text-slate-500 mb-0.5">ค่าเฉลี่ยรายปี</p>
+            <p className="text-xs font-semibold text-slate-500 mb-0.5">ค่าเฉลี่ยรายปี (เฉพาะน้ำมัน)</p>
             <p className="text-xl sm:text-2xl font-bold font-mono text-slate-900">
               {metrics.yearlyAverage.toLocaleString("th-TH", {
                 minimumFractionDigits: 2,
